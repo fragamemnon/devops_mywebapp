@@ -7,14 +7,20 @@ services:
       replicas: 1
       placement:
         constraints: [node.role == worker]
+    secrets:
+      - db_user
+      - db_password
     environment:
-      - MARIADB_ROOT_PASSWORD=${DB_PASSWORD}
+      - MARIADB_ROOT_PASSWORD_FILE=/run/secrets/db_password
+      - MARIADB_USER_FILE=/run/secrets/db_user
+      - MARIADB_PASSWORD_FILE=/run/secrets/db_password
       - MARIADB_DATABASE=myapp
-      - MARIADB_USER=${DB_USER}
-      - MARIADB_PASSWORD=${DB_PASSWORD}
     configs:
       - source: db_setup
         target: /docker-entrypoint-initdb.d/db_setup.sql
+    secrets:
+      - db_user
+      - db_password
 
   web:
     image: fragamemnonzor/my-php-apache-image:latest
@@ -29,17 +35,33 @@ services:
       replicas: 3
       restart_policy:
         condition: on-failure
+    secrets:
+      - db_user
+      - db_password
+      - webroot_location
     environment:
       - DB_HOST=db
-      - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - WEBROOT_LOCATION=${WEBROOT_LOCATION}
+    command: >
+      sh -c '
+        export DB_USER=$(cat /run/secrets/db_user) &&
+        export DB_PASSWORD=$(cat /run/secrets/db_password) &&
+        export WEBROOT_LOCATION=$(cat /run/secrets/webroot_location) &&
+        exec apache2-foreground
+      '
 
 networks:
   app-net:
     driver: overlay
-    attachable: true
 
 configs:
   db_setup:
     file: ./db/db_setup.sql
+
+
+secrets:
+  db_user:
+    file: ./secrets/db_user.txt
+  db_password:
+    file: ./secrets/db_password.txt
+  webroot_location:
+    file: ./secrets/webroot_location.txt
