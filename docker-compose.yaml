@@ -41,13 +41,7 @@ services:
       - webroot_location
     environment:
       - DB_HOST=db
-    command: >
-      sh -c '
-        export DB_USER=$(cat /run/secrets/db_user) &&
-        export DB_PASSWORD=$(cat /run/secrets/db_password) &&
-        export WEBROOT_LOCATION=$(cat /run/secrets/webroot_location) &&
-        exec apache2-foreground
-      '
+
 
 networks:
   app-net:
@@ -60,8 +54,8 @@ configs:
 
 secrets:
   db_user:
-    file: ./secrets/db_user.txt
+    file: /vagrant/secrets/db_user.txt
   db_password:
-    file: ./secrets/db_password.txt
+    file: /vagrant/secrets/db_password.txt
   webroot_location:
-    file: ./secrets/webroot_location.txt
+    file: /vagrant/secrets/webroot_location.txt
