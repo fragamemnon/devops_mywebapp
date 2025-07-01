@@ -38,6 +38,7 @@ services:
 networks:
   app-net:
     driver: overlay
+    attachable: true
 
 configs:
   db_setup:
