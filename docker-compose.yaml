@@ -6,12 +6,15 @@ services:
     deploy:
       replicas: 1
       placement:
-        constraints: [node.role == worker]  # Optional
+        constraints: [node.role == worker]
     environment:
-      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
-      - MYSQL_USER=${DB_USER}
-      - MYSQL_PASSWORD=${DB_PASSWORD}
-      - MYSQL_DATABASE=myapp  # Adjust if needed
+      - MARIADB_ROOT_PASSWORD=${DB_PASSWORD}
+      - MARIADB_DATABASE=myapp
+      - MARIADB_USER=${DB_USER}
+      - MARIADB_PASSWORD=${DB_PASSWORD}
+    configs:
+      - source: db_setup
+        target: /docker-entrypoint-initdb.d/db_setup.sql
 
   web:
     image: fragamemnonzor/my-php-apache-image:latest
@@ -35,3 +38,7 @@ services:
 networks:
   app-net:
     driver: overlay
+
+configs:
+  db_setup:
+    file: ./db/db_setup.sql
