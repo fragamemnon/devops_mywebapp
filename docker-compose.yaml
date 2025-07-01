@@ -1,0 +1,37 @@
+services:
+  db:
+    image: fragamemnonzor/my-mariadb-image:latest
+    networks:
+      - app-net
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == worker]  # Optional
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
+      - MYSQL_USER=${DB_USER}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+      - MYSQL_DATABASE=myapp  # Adjust if needed
+
+  web:
+    image: fragamemnonzor/my-php-apache-image:latest
+    networks:
+      - app-net
+    ports:
+      - target: 80
+        published: 8080
+        protocol: tcp
+        mode: ingress
+    deploy:
+      replicas: 3
+      restart_policy:
+        condition: on-failure
+    environment:
+      - DB_HOST=db
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - WEBROOT_LOCATION=${WEBROOT_LOCATION}
+
+networks:
+  app-net:
+    driver: overlay
